@@ -1,0 +1,37 @@
+[build-system]
+requires = ['flit_core >=3.2']
+build-backend = 'flit_core.buildapi'
+
+[project]
+name = 'mhnav_pipeline'
+version = '0.0.1'
+module = 'mhnav_pipeline'
+authors = [
+    {name = 'dcronkite', email='dcronkite+pypi@gmail.com'},
+]
+readme = 'README.md'
+description = 'NLP pipeline to extract the features used in the MH Navigator model.'
+home-page = 'https://github.com/kpwhri/mhnav_pipeline'
+requires = ['sqlalchemy', 'loguru', 'pandas', '-e git+https://github.com/kpwhri/bratdb.git#egg=bratdb']
+requires-python = '>=3.8'
+keywords = ['nlp', 'information extraction']
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Intended Audience :: Science/Research',
+    'Programming Language :: Python :: 3 :: Only',
+    'Topic :: Text Processing :: Linguistic',
+    'License :: OSI Approved :: MIT License',
+]
+
+[project.optional-dependencies]
+db = ['pyodbc']
+dev = ['pytest']
+psql = ['psycopg2']
+sas = ['sas7bdat']
+
+[project.scripts]
+run-mhnav-pipeline = "mhnav_pipeline.main:run"
+
+[project.urls]
+Source = 'https://github.com/kpwhri/mhnav_pipeline'
+
