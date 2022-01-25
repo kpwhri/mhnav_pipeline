@@ -14,7 +14,27 @@ from mhnav_pipeline.read_data import read_dataset
 
 def build_datasets(index_dataset, historical_dataset, regex_file, *,
                    in_connection_string=None, outpath=None, out_connection_string=None,
-                   output_to_csv=True):
+                   output_to_csv=True,
+                   nlp_positive_tablename=None,
+                   nlp_model_tablename=None,
+                   nlp_index_tablename=None,
+                   overwrite_existing=False):
+    """
+
+    :param index_dataset:
+    :param historical_dataset:
+    :param regex_file:
+    :param in_connection_string:
+    :param outpath:
+    :param out_connection_string:
+    :param output_to_csv:
+    :param nlp_positive_tablename: (optional) specify exact name for table
+    :param nlp_model_tablename: (optional) specify exact name for table
+    :param nlp_index_tablename: (optional) specify exact name for table
+    :param overwrite_existing: overwrite existing tables
+    :return:
+    """
+    logger.info(f'Beginning process of building datasets for Mental Health Navigator.')
     now = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 
     engine_in = sa.create_engine(in_connection_string) if in_connection_string else None
@@ -23,9 +43,12 @@ def build_datasets(index_dataset, historical_dataset, regex_file, *,
     outpath.mkdir(exist_ok=True, parents=True)
 
     # load data
-    logger.info('Loading data.')
+    logger.info(f'Loading index data from {index_dataset}.')
     index_df = read_dataset(index_dataset, engine=engine_in)
+    logger.info(f'Loaded {index_df.shape[0]} records for index dataset.')
+    logger.info(f'Loading historical data from {historical_dataset}.')
     historical_df = read_dataset(historical_dataset, 'index_pat_enc_csn_id', engine=engine_in)
+    logger.info(f'Loaded {index_df.shape[0]} records for historical dataset.')
 
     # process index data
     logger.info('Processing index data with bratdb-apply.')
@@ -39,7 +62,7 @@ def build_datasets(index_dataset, historical_dataset, regex_file, *,
     historical_res_df, historical_ct_df = apply_regex_and_merge(historical_lmt_df, regex_file)
 
     # merge with metadata
-    logger.info('Merging with metadata.')
+    logger.info('Merging results of bratdb-apply with metadata.')
     historical_res_df2 = attach_results_to_correct_encounter(
         historical_lmt_df, historical_res_df,
         on=['studyid', 'pat_enc_csn_id', 'index_pat_enc_csn_id', 'start_date', 'end_date', 'note_date'],
@@ -71,11 +94,18 @@ def build_datasets(index_dataset, historical_dataset, regex_file, *,
 
     # output sql
     if engine_out:
-        logger.info(f'Outputting tables to SQL Server: {out_connection_string}.')
-        nlp_positive.to_sql(f'nlp_positive_{now}', con=engine_out, index=False)
-        nlp_model.to_sql(f'nlp_model_{now}', con=engine_out, index=False)
-        nlp_index.to_sql(f'nlp_index_{now}', con=engine_out, index=False)
+        logger.info(f'Outputting tables to database: {out_connection_string}.')
+        nlp_positive_tablename = nlp_positive_tablename if nlp_positive_tablename else f'nlp_positive_{now}'
+        nlp_model_tablename = nlp_model_tablename if nlp_model_tablename else f'nlp_model_{now}'
+        nlp_index_tablename = nlp_index_tablename if nlp_index_tablename else f'nlp_index_{now}'
+        nlp_positive.to_sql(nlp_positive_tablename, con=engine_out, index=False,
+                            if_exists='replace' if overwrite_existing else 'fail')
+        nlp_model.to_sql(nlp_model_tablename, con=engine_out, index=False,
+                         if_exists='replace' if overwrite_existing else 'fail')
+        nlp_index.to_sql(nlp_index_tablename, con=engine_out, index=False,
+                         if_exists='replace' if overwrite_existing else 'fail')
 
+    logger.info(f'Process completed.')
     return nlp_positive, nlp_model, nlp_index
 
 
