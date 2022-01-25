@@ -3,6 +3,8 @@
 """
 import datetime
 import pathlib
+
+import pandas as pd
 import sqlalchemy as sa
 from loguru import logger
 
@@ -10,6 +12,16 @@ from mhnav_pipeline.bratdb_utils import apply_regex_and_merge
 from mhnav_pipeline.build_datasets import build_nlp_positive_table, build_nlp_model_table, build_nlp_index_table, \
     attach_results_to_correct_encounter, remove_index_dates
 from mhnav_pipeline.read_data import read_dataset
+
+
+def print_dataset(dataset):
+    if isinstance(dataset, pd.DataFrame):
+        return 'DataFrame'
+    elif isinstance(dataset, (str, pathlib.Path)):
+        return dataset
+    else:
+        logger.info(f'Not sure how to format: {type(dataset)}')
+        return dataset
 
 
 def build_datasets(index_dataset, historical_dataset, regex_file, *,
@@ -20,6 +32,8 @@ def build_datasets(index_dataset, historical_dataset, regex_file, *,
                    nlp_index_tablename=None,
                    overwrite_existing=False):
     """
+    Build datasets of text and then run regular expressions with bratdb-apply on the text. Retain
+        instances that are useful for the Mental Health Navigator model and output those as CSV/db.
 
     :param index_dataset:
     :param historical_dataset:
@@ -43,10 +57,10 @@ def build_datasets(index_dataset, historical_dataset, regex_file, *,
     outpath.mkdir(exist_ok=True, parents=True)
 
     # load data
-    logger.info(f'Loading index data from {index_dataset}.')
+    logger.info(f'Loading index data from {print_dataset(index_dataset)}.')
     index_df = read_dataset(index_dataset, engine=engine_in)
     logger.info(f'Loaded {index_df.shape[0]} records for index dataset.')
-    logger.info(f'Loading historical data from {historical_dataset}.')
+    logger.info(f'Loading historical data from {print_dataset(historical_dataset)}.')
     historical_df = read_dataset(historical_dataset, 'index_pat_enc_csn_id', engine=engine_in)
     logger.info(f'Loaded {index_df.shape[0]} records for historical dataset.')
 
