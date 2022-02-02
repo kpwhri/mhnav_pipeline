@@ -1,4 +1,5 @@
 import pandas as pd
+from loguru import logger
 
 
 def filter_on_start_end_dates(df):
@@ -31,11 +32,14 @@ def build_nlp_positive_table(historical_res_df2, historical_lmt_df):
                             historical_res_df2['index_pat_enc_csn_id'].drop_duplicates(), on='index_pat_enc_csn_id')
     nlp_positive = nlp_positive.fillna(0)
     del nlp_positive['studyid']
+    nlp_positive = pd.merge(nlp_positive, historical_lmt_df[['index_pat_enc_csn_id']].drop_duplicates(),
+                            on='index_pat_enc_csn_id', how='outer')
     nlp_positive.columns = ['pat_enc_csn_id', 'note_count']
-    nlp_positive = pd.merge(nlp_positive, historical_lmt_df[['pat_enc_csn_id']].drop_duplicates(),
-                            on='pat_enc_csn_id', how='outer')
     nlp_positive['note_count'] = nlp_positive['note_count'].fillna(0).apply(int)
-    nlp_positive.shape[0], nlp_positive['pat_enc_csn_id'].nunique(), nlp_positive.note_count.sum()
+    logger.info('Data on nlp_positive table:')
+    logger.info(f' * Number of records: {nlp_positive.shape[0]} (expected: ?)')
+    logger.info(f' * Number of unique pat_enc_csn_ids: {nlp_positive.pat_enc_csn_id.nunique()}')
+    logger.info(f' * Total number of notes: {nlp_positive.note_count.sum()}')
     return nlp_positive
 
 
@@ -45,7 +49,9 @@ def build_nlp_model_table(historical_ct_df2):
     ][['index_pat_enc_csn_id', 'note_date', 'concept_term']]
     nlp_model = nlp_model.drop_duplicates()
     nlp_model.columns = ['index_pat_enc_csn_id', 'note_date', 'concept_term']
-    nlp_model.shape[0], nlp_model['index_pat_enc_csn_id'].nunique()
+    logger.info('Data on nlp_model table:')
+    logger.info(f' * Number of records: {nlp_model.shape[0]}')
+    logger.info(f' * Number of unique index pat_enc_csn_ids: {nlp_model.index_pat_enc_csn_id.nunique()}')
     return nlp_model
 
 
@@ -55,5 +61,7 @@ def build_nlp_index_table(index_ct_df2):
     ][['pat_enc_csn_id', 'note_date', 'concept_term', 'capture']]
     nlp_index.columns = ['pat_enc_csn_id', 'note_date', 'concept_term', 'text_string']
     nlp_index = nlp_index.drop_duplicates()
-    nlp_index.shape[0], nlp_index['pat_enc_csn_id'].nunique()
+    logger.info('Data on nlp_positive table:')
+    logger.info(f' * Number of records: {nlp_index.shape[0]}')
+    logger.info(f' * Number of unique pat_enc_csn_ids: {nlp_index.pat_enc_csn_id.nunique()}')
     return nlp_index
