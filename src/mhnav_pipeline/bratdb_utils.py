@@ -48,11 +48,17 @@ def convert_terms(df):
     return pd.DataFrame(res)
 
 
-def apply_regex_and_merge(df, regex_file):
-    results_df = pd.DataFrame(
-        apply_regex_to_df(regex_file, df),
-        columns=['id', 'concept', 'term', 'capture']
-    )
+def apply_regex_and_merge(df, regex_file, include_context=0):
+    if include_context:
+        results_df = pd.DataFrame(
+            apply_regex_to_df(regex_file, df, include_context=include_context),
+            columns=['id', 'concept', 'term', 'capture', 'precontext', 'postcontext']
+        )
+    else:
+        results_df = pd.DataFrame(
+            apply_regex_to_df(regex_file, df, include_context=include_context),
+            columns=['id', 'concept', 'term', 'capture']
+        )
     res_df = pd.merge(df, results_df, left_index=True, right_on='id', how='inner')
     ct_df = convert_terms(res_df)
     return res_df.drop_duplicates(), ct_df.drop_duplicates()

@@ -61,7 +61,17 @@ def build_nlp_index_table(index_ct_df2):
     ][['pat_enc_csn_id', 'note_date', 'concept_term', 'capture']]
     nlp_index.columns = ['pat_enc_csn_id', 'note_date', 'concept_term', 'text_string']
     nlp_index = nlp_index.drop_duplicates()
-    logger.info('Data on nlp_positive table:')
+    logger.info('Data on nlp_index table:')
     logger.info(f' * Number of records: {nlp_index.shape[0]}')
     logger.info(f' * Number of unique pat_enc_csn_ids: {nlp_index.pat_enc_csn_id.nunique()}')
     return nlp_index
+
+
+def build_nlp_regex_table(index_ct_df, historical_ct_df):
+    """Build debugging output showing the hits of each regular expression with context."""
+    index_ct_df['is_index'] = 1
+    historical_ct_df['is_index'] = 0
+    nlp_regex = pd.concat((index_ct_df, historical_ct_df))
+    logger.info('Data on nlp_regex table:')
+    logger.info(f' * Number of records: {nlp_regex.shape[0]}')
+    return nlp_regex

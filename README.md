@@ -96,6 +96,7 @@ positive, model, index = build_datasets(
     in_connection_string='mssql+pyodbc://SERVER/database?driver=SQL Server',
     out_connection_string=None,  # want to use data directly, not output it
     output_to_csv=False,  # don't write to CSV, I want to use data directly
+    include_context=0,  # change to >0 to include a separate table/csv file that will contain context elements for NLP hits
 )
 ```
     
@@ -114,6 +115,7 @@ Optional arguments.
 5. `--out-connection-string`. If you want to output the tables into a database, you need to specify which database. The tablenames will be auto-generated and be suffixed with the current datetime. [SQL Alchemy-style connection string](https://docs.sqlalchemy.org/en/14/core/connections.html). You may need to install additional packages (e.g., `pyodbc` if using `mssql+pyodbc`).
 6. `--dont-output-to-csv`. By default, the application always outputs the result to CSV files. If you don't want to have those CSV files, include this option.
 7. `--outpath`. Path to write output files. Defaults to current directory.
+8. `--include-context`. If specifying an integer > 0, will output a separate table with regex debugging information. This can help to exclude boilerplate, etc.
 
 ### Output
 
