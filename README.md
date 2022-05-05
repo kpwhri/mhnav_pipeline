@@ -32,6 +32,8 @@ This NLP pipeline will use the output of `bratdb` to extract the features used i
 * Python 3.8+
 * Install `mhnav_pipeline` with `pip install .` 
 * Two datasets for 'index' and 'historical' information.
+* Copy the file `src/mhnav_pipeline/local/cleaning_template.py` to `src/mhnav_pipeline/local/cleaning.py`
+  * This will be used for any local modifications required to remove boilerplate, etc.
 
 #### Index Dataset
 

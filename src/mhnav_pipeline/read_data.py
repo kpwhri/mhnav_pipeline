@@ -29,4 +29,4 @@ def validate_headers(df, *extra_cols):
         e = ValueError(f'Dataset missing columns: {", ".join(missing)}')
         logger.exception(e)
         raise e
-    return df[list(exp_columns)]
+    return df[list(exp_columns)].copy()

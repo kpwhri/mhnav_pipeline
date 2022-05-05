@@ -11,6 +11,8 @@ from loguru import logger
 from mhnav_pipeline.bratdb_utils import apply_regex_and_merge
 from mhnav_pipeline.build_datasets import build_nlp_positive_table, build_nlp_model_table, build_nlp_index_table, \
     attach_results_to_correct_encounter, remove_index_dates, build_nlp_regex_table
+from mhnav_pipeline.local.cleaning import clean_text
+from mhnav_pipeline.local.tracking import log_and_reset_replacements
 from mhnav_pipeline.read_data import read_dataset
 
 
@@ -69,6 +71,12 @@ def build_datasets(index_dataset, historical_dataset, regex_file, *,
     historical_df = read_dataset(historical_dataset, 'index_pat_enc_csn_id', engine=engine_in)
     # columns: ['start_date', 'pat_enc_csn_id', 'note_date', 'studyid', 'index_pat_enc_csn_id', 'end_date', 'note_text']
     logger.info(f'Loaded {index_df.shape[0]} records for historical dataset.')
+
+    # clean text
+    index_df['note_text'] = index_df['note_text'].apply(clean_text)
+    log_and_reset_replacements()
+    historical_df['note_text'] = historical_df['note_text'].apply(clean_text)
+    log_and_reset_replacements()
 
     # process index data
     logger.info('Processing index data with bratdb-apply.')
