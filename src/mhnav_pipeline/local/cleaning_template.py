@@ -5,6 +5,7 @@ Please copy-paste the file and give it the name `cleaning.py`.
 """
 import re
 
+import pandas as pd
 from loguru import logger
 
 from mhnav_pipeline.local.tracking import add_replacement
@@ -20,6 +21,8 @@ def replace(text, regex_str):
 
 def clean_text(text):
     """Remove boilerplate, etc."""
+    if pd.isnull(text):
+        return ''
     if should_be_excluded(text):
         return ''
     text = '  '.join(text.split('\n'))
